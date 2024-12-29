@@ -13,12 +13,6 @@ export default function Index() {
       <Text className="text-2xl font-bold">
         Edit app/index.tsx to edit this screen.
       </Text>
-      <Link href="/sign-in">Sign in</Link>
-      <Link href="/explore">Explore</Link>
-      <Link href="/explore">Profile</Link>
-      <Link href="/properties/10" className="bg-red-200 p-2 rounded-full">
-        Property
-      </Link>
     </View>
   );
 }
