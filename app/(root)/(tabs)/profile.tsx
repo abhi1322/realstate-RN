@@ -53,6 +53,7 @@ const Profile = () => {
 
     if (result) {
       Alert.alert("Success", "You have successfully logged out");
+      refetch()
     } else {
       Alert.alert("Error", "Failed to log out");
     }
