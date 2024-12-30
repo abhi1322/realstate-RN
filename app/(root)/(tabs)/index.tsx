@@ -1,7 +1,10 @@
+import FeatureCard, { Card } from "@/components/Cards";
+import Filters from "@/components/Filters";
+import Search from "@/components/Search";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 import { Link } from "expo-router";
-import { Button, Image, Text, View } from "react-native";
+import { Button, Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
@@ -21,6 +24,45 @@ export default function Index() {
             </View>
           </View>
           <Image source={icons.bell} className="size-6" />
+        </View>
+      </View>
+      <View className="px-4">
+        <Search />
+        <View className="my-5">
+          <View className="flex flex-row items-center justify-between">
+            <Text className="text-xl font-rubik-semibold text-black-300">
+              Features
+            </Text>
+            <TouchableOpacity>
+              <Text className="text-sm font-rubik text-primary-300">
+                See All
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View className="flex flex-row gap-5 mt-5 ">
+            <FeatureCard />
+            <FeatureCard />
+          </View>
+        </View>
+        <View className="my-5">
+          <View className="flex flex-row items-center justify-between">
+            <Text className="text-xl font-rubik-semibold text-black-300">
+              Features
+            </Text>
+            <TouchableOpacity>
+              <Text className="text-sm font-rubik text-primary-300">
+                See All
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <Filters />
+
+          <View className="flex flex-row gap-5 mt-3 ">
+            <Card />
+            <Card />
+          </View>
         </View>
       </View>
     </SafeAreaView>
