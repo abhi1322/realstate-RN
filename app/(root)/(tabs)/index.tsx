@@ -4,6 +4,7 @@ import Search from "@/components/Search";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 import { useGlobalContext } from "@/lib/global-provider";
+import seed from "@/lib/seed";
 import { Link } from "expo-router";
 import {
   Button,
@@ -21,6 +22,7 @@ export default function Index() {
 
   return (
     <SafeAreaView className="bg-white h-full">
+      <Button title="data seed " onPress={seed} />
       <FlatList
         data={[1, 2, 3, 4]}
         renderItem={(item) => <Card />}
@@ -63,7 +65,7 @@ export default function Index() {
                 </View>
 
                 <FlatList
-                  data={[1, 2, 3]}
+                  data={[15, 28, 30]}
                   renderItem={(item) => <FeatureCard />}
                   keyExtractor={(item) => item.toString()}
                   horizontal
