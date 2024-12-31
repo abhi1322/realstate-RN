@@ -2,15 +2,12 @@ import FeatureCard, { Card } from "@/components/Cards";
 import Filters from "@/components/Filters";
 import Search from "@/components/Search";
 import icons from "@/constants/icons";
-import images from "@/constants/images";
 import { useGlobalContext } from "@/lib/global-provider";
 import seed from "@/lib/seed";
-import { Link } from "expo-router";
 import {
   Button,
   FlatList,
   Image,
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -20,12 +17,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function Index() {
   const { user } = useGlobalContext();
 
+  
+
+
   return (
     <SafeAreaView className="bg-white h-full">
       <Button title="data seed " onPress={seed} />
       <FlatList
         data={[1, 2, 3, 4]}
-        renderItem={(item) => <Card />}
+        renderItem={(item) => <Card key={item.index} />}
         keyExtractor={(item) => item.toString()}
         numColumns={2}
         columnWrapperClassName="flex gap-5 px-5"
@@ -66,7 +66,7 @@ export default function Index() {
 
                 <FlatList
                   data={[15, 28, 30]}
-                  renderItem={(item) => <FeatureCard />}
+                  renderItem={(item) => <FeatureCard key={item.index} />}
                   keyExtractor={(item) => item.toString()}
                   horizontal
                   showsHorizontalScrollIndicator={false}
