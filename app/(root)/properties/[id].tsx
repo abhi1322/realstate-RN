@@ -14,6 +14,7 @@ import { getProperty } from "@/lib/appwrite";
 import images from "@/constants/images";
 import icons from "@/constants/icons";
 import MapView, { Marker } from "react-native-maps";
+import { facilities } from "@/constants/data";
 
 interface Property extends Document {
   name: string;
@@ -25,10 +26,12 @@ interface Property extends Document {
   bathrooms: number;
   bedrooms: number;
   rating: number;
-  facities: Array<string>;
+  facilities: Array<string>;
   description: string;
   geolocation: string;
-  gallery: Array<string>;
+  gallery: Array<{
+    image: string;
+  }>;
   agent: {
     name: string;
     avatar: string;
@@ -79,6 +82,17 @@ const mapStyle = [
   },
 ];
 
+const facilityIcons = {
+  Laundry: require("@/assets/icons/laundry.png"),
+  "Car Parking": require("@/assets/icons/car-park.png"),
+  "Sports Center": require("@/assets/icons/run.png"),
+  Cutlery: require("@/assets/icons/cutlery.png"),
+  Gym: require("@/assets/icons/dumbell.png"),
+  "Swimming pool": require("@/assets/icons/swim.png"),
+  Wifi: require("@/assets/icons/wifi.png"),
+  "Pet Center": require("@/assets/icons/dog.png"),
+};
+
 const Property = () => {
   const { id } = useLocalSearchParams();
 
@@ -90,7 +104,7 @@ const Property = () => {
   }) as { data: Property | null; loading: boolean };
 
   // console.log(data);
-  console.log(data?.reviews);
+  console.log(data?.gallery);
   return (
     <SafeAreaView className="-mt-20 bg-white">
       {loading ? (
@@ -142,8 +156,7 @@ const Property = () => {
                   <Image source={icons.star} className="object-cover ml-2" />
                   <Text className="ml-2 text-black-200">{data?.rating}</Text>
                   <Text className="ml-1 text-s font-rubik text-black-100">
-                    <Text>{data?.reviews.length}</Text>
-                    <Text> reviews</Text>
+                    {`(${data?.reviews.length}) reviews`}
                   </Text>
                 </View>
               </View>
@@ -154,8 +167,7 @@ const Property = () => {
                     className="object-cover ml-2 size-6 "
                   />
                   <Text className="ml-2 font-rubik-medium text-black-200">
-                    <Text>{data?.bedrooms}</Text>
-                    <Text> Beds</Text>
+                    {data?.bedrooms} Beds
                   </Text>
                 </View>
                 <View className="flex flex-row items-center gap-1">
@@ -164,8 +176,7 @@ const Property = () => {
                     className="object-cover ml-2 size-6 "
                   />
                   <Text className="ml-2 font-rubik-medium text-black-200">
-                    <Text>{data?.bathrooms}</Text>
-                    <Text> Bath</Text>
+                    {data?.bathrooms} Bath
                   </Text>
                 </View>
                 <View className="flex flex-row items-center gap-1">
@@ -174,8 +185,7 @@ const Property = () => {
                     className="object-cover ml-2 size-6 "
                   />
                   <Text className="ml-2 font-rubik-medium text-black-200">
-                    <Text>{data?.area}</Text>
-                    <Text> sqft</Text>
+                    {data?.area} sqft
                   </Text>
                 </View>
               </View>
@@ -193,8 +203,7 @@ const Property = () => {
                     {data?.agent.name}
                   </Text>
                   <Text className="text-s font-rubik text-black-100">
-                    <Text>{data?.agent.name}</Text>
-                    <Text> Ownner</Text>
+                    {data?.agent.name} Owner
                   </Text>
                 </View>
                 <View className="flex flex-row gap-4">
@@ -210,21 +219,44 @@ const Property = () => {
                 {data?.description}
               </Text>
             </View>
-            {/* FACILITIES reviste */}
-            <View className="mt-6"></View>
+            {/* FACILITIES  */}
+            <View className="mt-6 flex-row flex-wrap gap-4">
+              {data?.facilities &&
+                data.facilities.map((facility) => (
+                  <View
+                    key={facility}
+                    className="flex justify-center items-center size-20 bg-primary-100 rounded-lg border border-primary-100"
+                  >
+                    <Image
+                      source={
+                        facilityIcons[facility as keyof typeof facilityIcons]
+                      }
+                      className="w-6 h-6"
+                    />
+                    <Text className="text-xs mt-1">{facility}</Text>
+                  </View>
+                ))}
+            </View>
             {/* Gallery */}
             <View className="mt-6">
               <Text className="text-2xl font-rubik-semibold">Gallery</Text>
-              <View className="grid grid-cols-3 gap-4">
+              <View className="flex mt-4 flex-row gap-4">
                 {data && data?.gallery.length > 0 ? (
-                  data?.gallery
-                    .slice(0, 3)
-                    .map((image) => (
+                  data?.gallery.slice(0, 3).map((image, index) => (
+                    <View key={index} className="relative">
                       <Image
-                        source={{ uri: image }}
-                        className="object-cover w-full h-[150px]"
+                        source={{ uri: image.image }}
+                        className="object-cover w-[110px] h-[110px] rounded-md border-primary-100 border"
                       />
-                    ))
+                      {index === 2 && data.gallery.length > 3 && (
+                        <View className="absolute inset-0 bg-white/20 rounded-md flex items-center justify-center">
+                          <Text className="text-white font-rubik-medium text-5xl">
+                            +{data.gallery.length - 3}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  ))
                 ) : (
                   <Text className="w-full text-xs mt-2 text-black-100">
                     No images uploaded by owner
@@ -273,7 +305,9 @@ const Property = () => {
             </View>
             {/* Reviews */}
             {data?.reviews.length === 0 ? (
-              <Text>No reviews </Text>
+              <Text className="w-full text-center mt-8 text-black-100">
+                No reviews{" "}
+              </Text>
             ) : (
               <View>
                 {data?.reviews.slice(0, 3).map((review) => (
