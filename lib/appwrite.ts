@@ -150,3 +150,19 @@ export async function getPriorities({
     return [];
   }
 }
+
+export async function getProperty({ id }: { id: string }) {
+  try {
+    const result = await databases.getDocument(
+      config.databaseId!,
+      config.propertiesCollectionId!,
+      id
+    );
+
+    console.log(result);
+    return result;
+  } catch (error) {
+    console.error("Get Property Failed", error);
+    return [];
+  }
+}
