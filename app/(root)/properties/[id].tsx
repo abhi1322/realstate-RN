@@ -13,6 +13,7 @@ import { useAppwrite } from "@/lib/useAppwrite";
 import { getProperty } from "@/lib/appwrite";
 import images from "@/constants/images";
 import icons from "@/constants/icons";
+import MapView, { Marker } from "react-native-maps";
 
 interface Property extends Document {
   name: string;
@@ -25,7 +26,7 @@ interface Property extends Document {
   bedrooms: number;
   rating: number;
   facities: Array<string>;
-  discription: string;
+  description: string;
   geolocation: string;
   gallery: Array<string>;
   agent: {
@@ -33,9 +34,50 @@ interface Property extends Document {
     avatar: string;
     email: string;
   };
-  reviews: Array<string>;
+  reviews: Array<{
+    name: string;
+    rating: number;
+    review: string;
+    avatar: string;
+  }>;
   // add other properties you expect
 }
+
+const mapStyle = [
+  {
+    elementType: "geometry",
+    stylers: [
+      {
+        color: "#f5f5f5",
+      },
+    ],
+  },
+  {
+    elementType: "labels.text.fill",
+    stylers: [
+      {
+        color: "#616161",
+      },
+    ],
+  },
+  {
+    elementType: "labels.text.stroke",
+    stylers: [
+      {
+        color: "#f5f5f5",
+      },
+    ],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [
+      {
+        color: "#ffffff",
+      },
+    ],
+  },
+];
 
 const Property = () => {
   const { id } = useLocalSearchParams();
@@ -47,18 +89,19 @@ const Property = () => {
     },
   }) as { data: Property | null; loading: boolean };
 
-  console.log(data);
+  // console.log(data);
+  console.log(data?.reviews);
   return (
     <SafeAreaView className="-mt-20 bg-white">
       {loading ? (
         <ActivityIndicator size="large" className="text-primary-300" />
       ) : (
         <ScrollView
-          className="h-full "
+          className="h-full bg-white "
           horizontal={false}
           showsVerticalScrollIndicator={false}
         >
-          <View className="relative">
+          <View className="relative bg-white">
             <Image
               source={{ uri: data?.image }}
               className="object-cover w-full h-[400px]"
@@ -99,7 +142,8 @@ const Property = () => {
                   <Image source={icons.star} className="object-cover ml-2" />
                   <Text className="ml-2 text-black-200">{data?.rating}</Text>
                   <Text className="ml-1 text-s font-rubik text-black-100">
-                    ({data?.reviews.length} reviews)
+                    <Text>{data?.reviews.length}</Text>
+                    <Text> reviews</Text>
                   </Text>
                 </View>
               </View>
@@ -110,7 +154,8 @@ const Property = () => {
                     className="object-cover ml-2 size-6 "
                   />
                   <Text className="ml-2 font-rubik-medium text-black-200">
-                    {data?.bedrooms} Beds
+                    <Text>{data?.bedrooms}</Text>
+                    <Text> Beds</Text>
                   </Text>
                 </View>
                 <View className="flex flex-row items-center gap-1">
@@ -119,7 +164,8 @@ const Property = () => {
                     className="object-cover ml-2 size-6 "
                   />
                   <Text className="ml-2 font-rubik-medium text-black-200">
-                    {data?.bedrooms} Bath
+                    <Text>{data?.bathrooms}</Text>
+                    <Text> Bath</Text>
                   </Text>
                 </View>
                 <View className="flex flex-row items-center gap-1">
@@ -128,7 +174,8 @@ const Property = () => {
                     className="object-cover ml-2 size-6 "
                   />
                   <Text className="ml-2 font-rubik-medium text-black-200">
-                    {data?.area} sqft
+                    <Text>{data?.area}</Text>
+                    <Text> sqft</Text>
                   </Text>
                 </View>
               </View>
@@ -146,7 +193,8 @@ const Property = () => {
                     {data?.agent.name}
                   </Text>
                   <Text className="text-s font-rubik text-black-100">
-                    Ownner
+                    <Text>{data?.agent.name}</Text>
+                    <Text> Ownner</Text>
                   </Text>
                 </View>
                 <View className="flex flex-row gap-4">
@@ -156,6 +204,118 @@ const Property = () => {
               </View>
             </View>
             {/* overview */}
+            <View className="mt-8">
+              <Text className="text-2xl font-rubik-semibold">Overview</Text>
+              <Text className="mt-2 text-base text-black-200">
+                {data?.description}
+              </Text>
+            </View>
+            {/* FACILITIES reviste */}
+            <View className="mt-6"></View>
+            {/* Gallery */}
+            <View className="mt-6">
+              <Text className="text-2xl font-rubik-semibold">Gallery</Text>
+              <View className="grid grid-cols-3 gap-4">
+                {data && data?.gallery.length > 0 ? (
+                  data?.gallery
+                    .slice(0, 3)
+                    .map((image) => (
+                      <Image
+                        source={{ uri: image }}
+                        className="object-cover w-full h-[150px]"
+                      />
+                    ))
+                ) : (
+                  <Text className="w-full text-xs mt-2 text-black-100">
+                    No images uploaded by owner
+                  </Text>
+                )}
+              </View>
+            </View>
+            {/* location */}
+            <View className="mt-8 ">
+              <Text className="text-2xl font-rubik-semibold">Location</Text>
+              <View className="mt-4 flex flex-row items-center">
+                <Image source={icons.location} className="size-6" />
+                <Text className="ml-2 text-base font-rubik text-black-200">
+                  {data?.address}
+                </Text>
+              </View>
+              {data?.geolocation && data.geolocation.includes(",") ? (
+                <View className="w-full h-80 mt-4">
+                  <MapView
+                    style={{ flex: 1 }}
+                    mapType="mutedStandard"
+                    customMapStyle={mapStyle}
+                    initialRegion={{
+                      latitude: parseFloat(data.geolocation.split(",")[0]) || 0,
+                      longitude:
+                        parseFloat(data.geolocation.split(",")[1]) || 0,
+                      latitudeDelta: 0.005,
+                      longitudeDelta: 0.005,
+                    }}
+                  >
+                    <Marker
+                      coordinate={{
+                        latitude:
+                          parseFloat(data.geolocation.split(",")[0]) || 0,
+                        longitude:
+                          parseFloat(data.geolocation.split(",")[1]) || 0,
+                      }}
+                    />
+                  </MapView>
+                </View>
+              ) : (
+                <Text className="mt-2 text-black-100">
+                  Location not available
+                </Text>
+              )}
+            </View>
+            {/* Reviews */}
+            {data?.reviews.length === 0 ? (
+              <Text>No reviews </Text>
+            ) : (
+              <View>
+                {data?.reviews.slice(0, 3).map((review) => (
+                  <View className="mt-8">
+                    <View className="flex flex-row items-center gap-4">
+                      <Image
+                        source={{ uri: review.avatar }}
+                        className="size-10 rounded-full"
+                      />
+                      <View className="">
+                        <Text className="text-base font-rubik-medium text-black-200">
+                          {review.name}
+                        </Text>
+                        <View className="text-sm flex  flex-row items-center gap-1">
+                          <Text className="text-s font-rubik text-black-100">
+                            {review.rating}
+                          </Text>
+                          <Image source={icons.star} className="size-4" />x
+                        </View>
+                      </View>
+                    </View>
+                    <Text className="text-base font-rubik-light mt-1 text-black-200">
+                      {review.review}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            {/* last booking section */}
+            <View className="mt-8 flex flex-row justify-between border-t border-primary-100 pt-8 ">
+              <View>
+                <Text className="font-rubik-semibold uppercase text-sm text-black-200">
+                  Price
+                </Text>
+                <Text className="text-primary-300 font-rubik-semibold text-2xl">
+                  ${data?.price}
+                </Text>
+              </View>
+              <TouchableOpacity className="bg-primary-300 text-sm rounded-full flex justify-center items-center px-8 text-white">
+                <Text className="text-white text-xl">Book Now</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
       )}
