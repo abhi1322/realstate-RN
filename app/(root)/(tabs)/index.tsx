@@ -1,44 +1,88 @@
-import FeatureCard, { Card } from "@/components/Cards";
-import Filters from "@/components/Filters";
-import Search from "@/components/Search";
-import icons from "@/constants/icons";
-import { useGlobalContext } from "@/lib/global-provider";
-import seed from "@/lib/seed";
 import {
-  Button,
+  ActivityIndicator,
   FlatList,
   Image,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useEffect } from "react";
+import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function Index() {
+import icons from "@/constants/icons";
+
+import Search from "@/components/Search";
+import Filters from "@/components/Filters";
+import NoResults from "@/components/NoResults";
+import { Card, FeaturedCard } from "@/components/Cards";
+
+import { useAppwrite } from "@/lib/useAppwrite";
+import { useGlobalContext } from "@/lib/global-provider";
+import { getLatestProperties, getPriorities } from "@/lib/appwrite";
+
+const Home = () => {
   const { user } = useGlobalContext();
 
-  
+  const params = useLocalSearchParams<{ query?: string; filter?: string }>();
 
+  const { data: latestProperties, loading: latestPropertiesLoading } =
+    useAppwrite({
+      fn: getLatestProperties,
+    });
+
+  const {
+    data: properties,
+    refetch,
+    loading,
+  } = useAppwrite({
+    fn: getPriorities,
+    params: {
+      filter: params.filter!,
+      query: params.query!,
+      limit: 6,
+    },
+    skip: true,
+  });
+
+  useEffect(() => {
+    refetch({
+      filter: params.filter!,
+      query: params.query!,
+      limit: 6,
+    });
+  }, [params.filter, params.query]);
+
+  const handleCardPress = (id: string) => router.push(`/properties/${id}`);
 
   return (
-    <SafeAreaView className="bg-white h-full">
-      <Button title="data seed " onPress={seed} />
+    <SafeAreaView className="h-full bg-white">
       <FlatList
-        data={[1, 2, 3, 4]}
-        renderItem={(item) => <Card key={item.index} />}
-        keyExtractor={(item) => item.toString()}
+        data={properties}
         numColumns={2}
+        renderItem={({ item }) => (
+          <Card item={item} onPress={() => handleCardPress(item.$id)} />
+        )}
+        keyExtractor={(item) => item.$id}
+        contentContainerClassName="pb-32"
         columnWrapperClassName="flex gap-5 px-5"
         showsVerticalScrollIndicator={false}
-        ListFooterComponent={<View className="mt-16"></View>}
-        ListHeaderComponent={
+        ListEmptyComponent={
+          loading ? (
+            <ActivityIndicator size="large" className="text-primary-300 mt-5" />
+          ) : (
+            <NoResults />
+          )
+        }
+        ListHeaderComponent={() => (
           <View className="px-5">
             <View className="flex flex-row items-center justify-between mt-5">
-              <View className="flex flex-row items-center">
+              <View className="flex flex-row">
                 <Image
                   source={{ uri: user?.avatar }}
                   className="size-12 rounded-full"
                 />
+
                 <View className="flex flex-col items-start ml-2 justify-center">
                   <Text className="text-xs font-rubik text-black-100">
                     Good Morning
@@ -50,48 +94,63 @@ export default function Index() {
               </View>
               <Image source={icons.bell} className="size-6" />
             </View>
-            <View className="">
-              <Search />
-              <View className="my-5">
-                <View className="flex flex-row items-center justify-between">
-                  <Text className="text-xl font-rubik-semibold text-black-300">
-                    Features
-                  </Text>
-                  <TouchableOpacity>
-                    <Text className="text-sm font-rubik text-primary-300">
-                      See All
-                    </Text>
-                  </TouchableOpacity>
-                </View>
 
+            <Search />
+
+            <View className="my-5">
+              <View className="flex flex-row items-center justify-between">
+                <Text className="text-xl font-rubik-bold text-black-300">
+                  Featured
+                </Text>
+                <TouchableOpacity>
+                  <Text className="text-base font-rubik-bold text-primary-300">
+                    See all
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {latestPropertiesLoading ? (
+                <ActivityIndicator size="large" className="text-primary-300" />
+              ) : !latestProperties || latestProperties.length === 0 ? (
+                <NoResults />
+              ) : (
                 <FlatList
-                  data={[15, 28, 30]}
-                  renderItem={(item) => <FeatureCard key={item.index} />}
-                  keyExtractor={(item) => item.toString()}
+                  data={latestProperties}
+                  renderItem={({ item }) => (
+                    <FeaturedCard
+                      item={item}
+                      onPress={() => handleCardPress(item.$id)}
+                    />
+                  )}
+                  keyExtractor={(item) => item.$id}
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  bounces={false}
                   contentContainerClassName="flex gap-5 mt-5"
                 />
-              </View>
-              <View className="my-5">
-                <View className="flex flex-row items-center justify-between">
-                  <Text className="text-xl font-rubik-semibold text-black-300">
-                    Our reconmendation
-                  </Text>
-                  <TouchableOpacity>
-                    <Text className="text-sm font-rubik text-primary-300">
-                      See All
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+              )}
+            </View>
 
-                <Filters />
+            {/* <Button title="seed" onPress={seed} /> */}
+
+            <View className="mt-5">
+              <View className="flex flex-row items-center justify-between">
+                <Text className="text-xl font-rubik-bold text-black-300">
+                  Our Recommendation
+                </Text>
+                <TouchableOpacity>
+                  <Text className="text-base font-rubik-bold text-primary-300">
+                    See all
+                  </Text>
+                </TouchableOpacity>
               </View>
+
+              <Filters />
             </View>
           </View>
-        }
+        )}
       />
     </SafeAreaView>
   );
-}
+};
+
+export default Home;

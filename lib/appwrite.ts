@@ -111,7 +111,7 @@ export async function getLatestProperties() {
   }
 }
 
-export async function getPropertyPriorities({
+export async function getPriorities({
   filter,
   query,
   limit,
@@ -121,7 +121,7 @@ export async function getPropertyPriorities({
   limit?: number;
 }) {
   try {
-    const buildQuery = [Query.orderAsc("$crearedAt")];
+    const buildQuery = [Query.orderAsc("$createdAt")];
 
     if (filter && filter !== "All")
       buildQuery.push(Query.equal("type", filter));
@@ -145,7 +145,6 @@ export async function getPropertyPriorities({
     );
 
     return result.documents;
-    
   } catch (error) {
     console.error(error);
     return [];
